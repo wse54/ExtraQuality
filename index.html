@@ -148,20 +148,36 @@ document.getElementById("products").innerHTML = products.map(p => `
     </div>
   </article>`).join("");
 
-function playProductVideo(button) {
+
+async function playProductVideo(button) {
   const video = button.parentElement.querySelector("video");
   if (!video) return;
 
   video.controls = true;
+  video.setAttribute("controls", "");
+  video.setAttribute("playsinline", "");
+
   button.style.display = "none";
 
-  const promise = video.play();
-  if (promise) {
-    promise.catch(() => {
-      button.style.display = "grid";
-    });
+  try {
+    await video.play();
+  } catch (error) {
+    button.style.display = "grid";
+    return;
+  }
+
+  // Demande le plein écran si le navigateur le permet.
+  if (video.requestFullscreen) {
+    try {
+      await video.requestFullscreen();
+    } catch (error) {
+      // Le plein écran peut être bloqué par Telegram.
+    }
+  } else if (video.webkitEnterFullscreen) {
+    video.webkitEnterFullscreen();
   }
 }
+
   function addToCart(id) {
     cart[id] = (cart[id] || 0) + 1;
     renderCart();
